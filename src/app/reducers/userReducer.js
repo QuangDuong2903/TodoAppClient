@@ -29,6 +29,9 @@ const initialState = {
 export const userManagementSlice = createSlice({
     name: 'userManagement',
     initialState: initialState,
+    reducers: {
+        setStatus: (state, action) => { state.status = action.payload }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getUserData.pending, (state) => {
@@ -41,8 +44,20 @@ export const userManagementSlice = createSlice({
             .addCase(getUserData.rejected, (state) => {
                 state.status = 'failed'
             })
+            .addCase(createUser.pending, (state) => {
+                state.status = 'loading'
+            })
+            .addCase(createUser.fulfilled, (state, action) => {
+                state.status = 'succeeded'
+                state.data = action.payload
+            })
+            .addCase(createUser.rejected, (state) => {
+                state.status = 'failed'
+            })
     }
 })
+
+export const { setStatus } = userManagementSlice.actions
 
 export const selectUserData = state => state.userManagement.data
 

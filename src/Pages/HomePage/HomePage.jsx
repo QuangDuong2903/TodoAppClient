@@ -3,29 +3,55 @@ import { Avatar, TextField, Button } from '@mui/material'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectAccessToken, selectUserData, selectUserStatus } from '../../app/reducers/userReducer';
-import { createTask, deleteTask, getTask, selectTaskData, updateTask } from '../../app/reducers/taskReducer';
+import { selectAccessToken, selectUserData, selectUserStatus, setStatus } from '../../app/reducers/userReducer';
+import { createTask, deleteTask, getTask, selectTaskData, selectTaskErrorCode, selectTaskStatus, updateTask } from '../../app/reducers/taskReducer';
 import Task from '../../Components/Task/Task';
+import { useNavigate } from 'react-router-dom';
+import { unwrapResult } from '@reduxjs/toolkit'
 
 const HomePage = () => {
 
     const userStatus = useSelector(selectUserStatus)
+    const taskStatus = useSelector(selectTaskStatus)
+    const statusCode = useSelector(selectTaskErrorCode)
     const accessToken = useSelector(selectAccessToken)
     const user = useSelector(selectUserData)
     const data = useSelector(selectTaskData)
     const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const [name, setName] = useState('')
 
     useEffect(() => {
-        if (userStatus === 'succeeded')
-            dispatch(getTask(accessToken))
+        if (userStatus != 'succeeded')
+            navigate('/signin')
+    }, [])
 
+    useEffect(() => {
+        // if (statusCode == '401')
+        //     navigate('/signin')
+    }, [statusCode])
+
+    useEffect(() => {
+        if (userStatus == 'succeeded')
+            dispatch(getTask(accessToken))
+                .then(unwrapResult)
+                .then((originalPromiseResult) => {
+                    console.log(originalPromiseResult)
+                })
+                .catch((rejectedValueOrSerializedError) => {
+                    console.log(rejectedValueOrSerializedError)
+                    if (rejectedValueOrSerializedError == '401') {
+                        dispatch(setStatus('unauthorized'))
+                        navigate('/signin')
+                    }
+                })
     }, [userStatus])
 
     const handleCreateTask = () => {
         const data = { name, status: false }
         dispatch(createTask({ accessToken, data }))
+        setName('')
     }
 
     const handleUpdateTask = (data, id) => {

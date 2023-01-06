@@ -3,7 +3,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import DoneIcon from '@mui/icons-material/Done'
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TextField, IconButton } from '@mui/material'
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const Task = ({ data, handleUpdate, handleDelete }) => {
 
@@ -12,11 +12,12 @@ const Task = ({ data, handleUpdate, handleDelete }) => {
     const [status, setStatus] = useState(data.status)
     const [isEditName, setIsEditName] = useState(false)
 
-    useEffect(() => {
-        handleUpdateTask()
-    }, [status])
-
     const handleUpdateTask = () => {
+        const data = { name, status }
+        handleUpdate(data, id)
+    }
+
+    const handleUpdateStatus = (status) => {
         const data = { name, status }
         handleUpdate(data, id)
     }
@@ -26,7 +27,7 @@ const Task = ({ data, handleUpdate, handleDelete }) => {
             <div className={styles.name} onClick={() => setIsEditName(true)}>
                 {
                     isEditName ?
-                        <TextField label="Task name" variant="outlined" size='small' fullWidth
+                        <TextField label="Task name" variant="outlined" size='small' fullWidth autoFocus
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             onBlur={() => {
@@ -54,6 +55,7 @@ const Task = ({ data, handleUpdate, handleDelete }) => {
                 <IconButton
                     sx={{ width: 25, height: 25, margin: '0 10px' }}
                     onClick={() => {
+                        handleUpdateStatus(!status)
                         setStatus(!status)
                     }}
                 >

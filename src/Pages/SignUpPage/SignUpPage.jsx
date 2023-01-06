@@ -10,9 +10,13 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import CircularProgress from '@mui/material/CircularProgress';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { createUser, selectUserStatus } from '../../app/reducers/userReducer';
 
 function Copyright(props) {
     return (
@@ -32,10 +36,21 @@ const theme = createTheme()
 const SignUpPage = () => {
 
     const navigate = useNavigate()
+    const dispatch = useDispatch()
+    const status = useSelector(selectUserStatus)
+    const [username, setUserName] = useState('')
+    const [password, setPassword] = useState('')
+    const [email, setEmail] = useState('')
 
     const handleSubmit = () => {
-
+        const data = { username, password, email }
+        dispatch(createUser(data))
     }
+
+    useEffect(() => {
+        if (status == 'succeeded')
+            navigate('/')
+    }, [status])
 
     return (
         <ThemeProvider theme={theme}>
@@ -55,7 +70,7 @@ const SignUpPage = () => {
                     <Typography component="h1" variant="h5">
                         Sign up
                     </Typography>
-                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                    <Box component="form" noValidate sx={{ mt: 3 }}>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <TextField
@@ -64,6 +79,8 @@ const SignUpPage = () => {
                                     fullWidth
                                     label="Username"
                                     autoFocus
+                                    value={username}
+                                    onChange={e => setUserName(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -74,6 +91,8 @@ const SignUpPage = () => {
                                     label="Email Address"
                                     name="email"
                                     autoComplete="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -85,6 +104,8 @@ const SignUpPage = () => {
                                     type="password"
                                     id="password"
                                     autoComplete="new-password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -93,17 +114,26 @@ const SignUpPage = () => {
                                     label="I want to receive inspiration, marketing promotions and updates via email."
                                 />
                             </Grid>
+                            {
+                                status == 'loading' &&
+                                <Grid item xs={12}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                        <CircularProgress />
+                                    </Box>
+                                </Grid>
+                            }
                         </Grid>
                         <Button
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
+                            onClick={() => handleSubmit()}
                         >
                             Sign Up
                         </Button>
                         <Grid container justifyContent="flex-end">
                             <Grid item>
-                                <Link variant="body2" onClick={() => navigate('/signin')} style={{cursor: 'pointer'}}>
+                                <Link variant="body2" onClick={() => navigate('/signin')} style={{ cursor: 'pointer' }}>
                                     Already have an account? Sign in
                                 </Link>
                             </Grid>

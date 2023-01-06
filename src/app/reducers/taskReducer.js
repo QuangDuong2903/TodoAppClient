@@ -8,7 +8,7 @@ const initialState = {
     status: 'idle'
 }
 
-export const getTask = createAsyncThunk('taskManagement/getTaskData', async (accessToken) => {
+export const getTask = createAsyncThunk('taskManagement/getTaskData', async (accessToken, { rejectWithValue }) => {
     try {
         const res = await axios.get(TASK_URL, {
             headers: {
@@ -18,6 +18,7 @@ export const getTask = createAsyncThunk('taskManagement/getTaskData', async (acc
         return res.data
     } catch (error) {
         console.log(error)
+        return rejectWithValue(error.response.data.status)
     }
 })
 
@@ -36,13 +37,11 @@ export const createTask = createAsyncThunk('taskManagement/createTaskData', asyn
 
 export const updateTask = createAsyncThunk('taskManagement/updateTaskData', async ({ accessToken, data, id }) => {
     try {
-        console.log(data)
         const res = await axios.put(`${TASK_URL}/${id}`, data, {
             headers: {
                 Authorization: `Bearer ${accessToken}`
             }
         })
-        console.log(res.data)
         return res.data
     } catch (error) {
         console.log(error)
@@ -114,5 +113,7 @@ export const taskManagementSlice = createSlice({
 export const selectTaskData = state => state.taskManagement.data
 
 export const selectTaskStatus = state => state.taskManagement.status
+
+export const selectTaskErrorCode = state => state.taskManagement.errCode
 
 export default taskManagementSlice.reducer

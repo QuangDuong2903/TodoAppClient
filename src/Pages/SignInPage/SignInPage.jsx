@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import CircularProgress from '@mui/material/CircularProgress';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { useEffect, useState } from 'react';
@@ -42,7 +43,7 @@ const SignInPage = () => {
     const [password, setPassWord] = useState('')
 
     useEffect(() => {
-        if (status === 'succeeded')
+        if (status == 'succeeded')
             navigate('/')
     }, [status])
 
@@ -97,6 +98,12 @@ const SignInPage = () => {
                             control={<Checkbox value="remember" color="primary" />}
                             label="Remember me"
                         />
+                        {
+                            status == 'loading' &&
+                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <CircularProgress />
+                            </Box>
+                        }
                         <Button
                             fullWidth
                             variant="contained"
