@@ -11,12 +11,14 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserData, selectUserStatus } from '../../app/reducers/userReducer';
+import { unwrapResult } from '@reduxjs/toolkit'
 
 function Copyright(props) {
     return (
@@ -39,6 +41,7 @@ const SignInPage = () => {
     const navigate = useNavigate()
     const status = useSelector(selectUserStatus)
 
+    const [errMsg, setErrMsg] = useState('')
     const [username, setUserName] = useState('')
     const [password, setPassWord] = useState('')
 
@@ -49,6 +52,15 @@ const SignInPage = () => {
 
     const handleSubmit = () => {
         dispatch(getUserData({ username, password }))
+            .then(unwrapResult)
+            .catch((rejectedValueOrSerializedError) => {
+                if (rejectedValueOrSerializedError == '404')
+                    setErrMsg('User not found')
+                else if (rejectedValueOrSerializedError == '400')
+                    setErrMsg('Wrong password')
+                else
+                    setErrMsg('Server error')
+            })
     }
 
     return (
@@ -103,6 +115,12 @@ const SignInPage = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                 <CircularProgress />
                             </Box>
+                        }
+                        {
+                            status == 'failed' && errMsg &&
+                            <Alert variant="outlined" severity="error">
+                                {errMsg}
+                            </Alert>
                         }
                         <Button
                             fullWidth

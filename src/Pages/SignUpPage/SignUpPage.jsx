@@ -11,6 +11,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { useNavigate } from 'react-router-dom';
@@ -41,10 +42,15 @@ const SignUpPage = () => {
     const [username, setUserName] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
+    const [isNotValidated, setIsNotValidated] = useState(false)
 
     const handleSubmit = () => {
-        const data = { username, password, email }
-        dispatch(createUser(data))
+        if (!username || !password || !email)
+            setIsNotValidated(true)
+        else {
+            const data = { username, password, email }
+            dispatch(createUser(data))
+        }
     }
 
     useEffect(() => {
@@ -82,6 +88,12 @@ const SignUpPage = () => {
                                     value={username}
                                     onChange={e => setUserName(e.target.value)}
                                 />
+                                {
+                                    isNotValidated && !username &&
+                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                        Username is required
+                                    </Alert>
+                                }
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -94,6 +106,12 @@ const SignUpPage = () => {
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                 />
+                                {
+                                    isNotValidated && !email &&
+                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                        Email is required
+                                    </Alert>
+                                }
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -107,6 +125,12 @@ const SignUpPage = () => {
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
                                 />
+                                {
+                                    isNotValidated && !password &&
+                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                        Password is required
+                                    </Alert>
+                                }
                             </Grid>
                             <Grid item xs={12}>
                                 <FormControlLabel
