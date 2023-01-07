@@ -12,12 +12,13 @@ export const getUserData = createAsyncThunk('userManagement/getUserData', async 
     }
 })
 
-export const createUser = createAsyncThunk('userManagement/createUser', async (data) => {
+export const createUser = createAsyncThunk('userManagement/createUser', async (data, { rejectWithValue }) => {
     try {
         const res = await axios.post(SIGNUP_URL, data)
         return res.data
     } catch (error) {
         console.log(error)
+        return rejectWithValue(error.response.status)
     }
 })
 

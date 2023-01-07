@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { createUser, selectUserStatus } from '../../app/reducers/userReducer';
+import { unwrapResult } from '@reduxjs/toolkit'
 
 function Copyright(props) {
     return (
@@ -39,17 +40,37 @@ const SignUpPage = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const status = useSelector(selectUserStatus)
+    const [errMsg, setErrMsg] = useState('')
     const [username, setUserName] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
     const [isNotValidated, setIsNotValidated] = useState(false)
+    const [isNotValidatedEmail, setIsNotValidatedEmail] = useState(false)
 
     const handleSubmit = () => {
         if (!username || !password || !email)
             setIsNotValidated(true)
         else {
-            const data = { username, password, email }
-            dispatch(createUser(data))
+            if (!String(email)
+                .toLowerCase()
+                .match(
+                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                )) {
+                setIsNotValidated(true)
+                setIsNotValidatedEmail(true)
+            }
+            else {
+                const data = { username, password, email }
+                dispatch(createUser(data))
+                    .then(unwrapResult)
+                    .catch((rejectedValueOrSerializedError) => {
+                        console.error(rejectedValueOrSerializedError)
+                        if (rejectedValueOrSerializedError == '409')
+                            setErrMsg('Username or email already in use')
+                        else
+                            setErrMsg('Server error')
+                    })
+            }
         }
     }
 
@@ -104,12 +125,21 @@ const SignUpPage = () => {
                                     name="email"
                                     autoComplete="email"
                                     value={email}
-                                    onChange={e => setEmail(e.target.value)}
+                                    onChange={e => {
+                                        setEmail(e.target.value)
+                                        setIsNotValidated(false)
+                                    }}
                                 />
                                 {
                                     isNotValidated && !email &&
                                     <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
                                         Email is required
+                                    </Alert>
+                                }
+                                {
+                                    isNotValidatedEmail && isNotValidated &&
+                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                        Please enter a valid email address
                                     </Alert>
                                 }
                             </Grid>
@@ -144,6 +174,14 @@ const SignUpPage = () => {
                                     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                         <CircularProgress />
                                     </Box>
+                                </Grid>
+                            }
+                            {
+                                errMsg &&
+                                <Grid item xs={12}>
+                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                        {errMsg}
+                                    </Alert>
                                 </Grid>
                             }
                         </Grid>
