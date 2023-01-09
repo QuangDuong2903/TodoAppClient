@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { LOGIN_URL, SIGNUP_URL } from "../constant/apiURL";
+import { ACTIVATE_URL, LOGIN_URL, SIGNUP_URL } from "../constant/apiURL";
 
 export const getUserData = createAsyncThunk('userManagement/getUserData', async (data, { rejectWithValue }) => {
     try {
@@ -15,6 +15,20 @@ export const getUserData = createAsyncThunk('userManagement/getUserData', async 
 export const createUser = createAsyncThunk('userManagement/createUser', async (data, { rejectWithValue }) => {
     try {
         const res = await axios.post(SIGNUP_URL, data)
+        return res.data
+    } catch (error) {
+        console.log(error)
+        return rejectWithValue(error.response.status)
+    }
+})
+
+export const activateAccount = createAsyncThunk('userManagement/activateUser', async (token, { rejectWithValue }) => {
+    try {
+        const res = await axios.get(ACTIVATE_URL, {
+            params: {
+                token
+            }
+        })
         return res.data
     } catch (error) {
         console.log(error)
@@ -50,11 +64,21 @@ export const userManagementSlice = createSlice({
                 state.status = 'loading'
             })
             .addCase(createUser.fulfilled, (state, action) => {
-                state.status = 'succeeded'
+                state.status = action.payload.status == 1 ? 'succeeded' : 'inactive'
                 state.data = action.payload
             })
             .addCase(createUser.rejected, (state) => {
                 state.status = 'failed'
+            })
+            .addCase(activateAccount.pending, (state) => {
+                state.status = 'loading'
+            })
+            .addCase(activateAccount.fulfilled, (state, action) => {
+                state.status = 'succeeded'
+                state.data = action.payload
+            })
+            .addCase(activateAccount.rejected, (state) => {
+                state.status = 'failedactive'
             })
     }
 })

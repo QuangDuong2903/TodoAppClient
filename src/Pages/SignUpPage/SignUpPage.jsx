@@ -17,10 +17,10 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { createUser, selectUserStatus } from '../../app/reducers/userReducer';
+import { activateAccount, createUser, selectUserStatus } from '../../app/reducers/userReducer';
 import { unwrapResult } from '@reduxjs/toolkit'
 
-function Copyright(props) {
+const Copyright = (props) => {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
             {'Copyright © '}
@@ -40,10 +40,12 @@ const SignUpPage = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const status = useSelector(selectUserStatus)
+    const [active, setActive] = useState(false)
     const [errMsg, setErrMsg] = useState('')
     const [username, setUserName] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
+    const [token, setToken] = useState('')
     const [isNotValidated, setIsNotValidated] = useState(false)
     const [isNotValidatedEmail, setIsNotValidatedEmail] = useState(false)
 
@@ -63,6 +65,9 @@ const SignUpPage = () => {
                 const data = { username, password, email }
                 dispatch(createUser(data))
                     .then(unwrapResult)
+                    .then(() => {
+                        setActive(true)
+                    })
                     .catch((rejectedValueOrSerializedError) => {
                         console.error(rejectedValueOrSerializedError)
                         if (rejectedValueOrSerializedError == '409')
@@ -74,6 +79,27 @@ const SignUpPage = () => {
         }
     }
 
+    const handleActivate = () => {
+        dispatch(activateAccount(token))
+            .then(unwrapResult)
+            .catch((rejectedValueOrSerializedError) => {
+                //console.log(rejectedValueOrSerializedError)
+                if (rejectedValueOrSerializedError == '400')
+                    setErrMsg('Expired token')
+                else
+                    setErrMsg('Server error')
+            })
+    }
+
+    const handleReSend = () => {
+        const data = { username, password, email }
+        dispatch(createUser(data))
+            .then(unwrapResult)
+            .catch(() => {
+                setErrMsg('Server error')
+            })
+    }
+
     useEffect(() => {
         if (status == 'succeeded')
             navigate('/')
@@ -81,129 +107,194 @@ const SignUpPage = () => {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <Box
-                    sx={{
-                        marginTop: 8,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                    }}
-                >
-                    <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                        <LockOutlinedIcon />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Sign up
-                    </Typography>
-                    <Box component="form" noValidate sx={{ mt: 3 }}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    autoComplete="given-name"
-                                    required
-                                    fullWidth
-                                    label="Username"
-                                    autoFocus
-                                    value={username}
-                                    onChange={e => setUserName(e.target.value)}
-                                />
-                                {
-                                    isNotValidated && !username &&
-                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
-                                        Username is required
-                                    </Alert>
-                                }
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    required
-                                    fullWidth
-                                    id="email"
-                                    label="Email Address"
-                                    name="email"
-                                    autoComplete="email"
-                                    value={email}
-                                    onChange={e => {
-                                        setEmail(e.target.value)
-                                        setIsNotValidated(false)
-                                    }}
-                                />
-                                {
-                                    isNotValidated && !email &&
-                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
-                                        Email is required
-                                    </Alert>
-                                }
-                                {
-                                    isNotValidatedEmail && isNotValidated &&
-                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
-                                        Please enter a valid email address
-                                    </Alert>
-                                }
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    required
-                                    fullWidth
-                                    name="password"
-                                    label="Password"
-                                    type="password"
-                                    id="password"
-                                    autoComplete="new-password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                />
-                                {
-                                    isNotValidated && !password &&
-                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
-                                        Password is required
-                                    </Alert>
-                                }
-                            </Grid>
-                            <Grid item xs={12}>
-                                <FormControlLabel
-                                    control={<Checkbox value="allowExtraEmails" color="primary" />}
-                                    label="I want to receive inspiration, marketing promotions and updates via email."
-                                />
-                            </Grid>
-                            {
-                                status == 'loading' &&
+            {
+                !active &&
+                <Container component="main" maxWidth="xs">
+                    <CssBaseline />
+                    <Box
+                        sx={{
+                            marginTop: 8,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                            <LockOutlinedIcon />
+                        </Avatar>
+                        <Typography component="h1" variant="h5">
+                            Sign up
+                        </Typography>
+                        <Box component="form" noValidate sx={{ mt: 3 }}>
+                            <Grid container spacing={2}>
                                 <Grid item xs={12}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                        <CircularProgress />
-                                    </Box>
+                                    <TextField
+                                        autoComplete="given-name"
+                                        required
+                                        fullWidth
+                                        label="Username"
+                                        autoFocus
+                                        value={username}
+                                        onChange={e => setUserName(e.target.value)}
+                                    />
+                                    {
+                                        isNotValidated && !username &&
+                                        <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                            Username is required
+                                        </Alert>
+                                    }
                                 </Grid>
-                            }
-                            {
-                                errMsg &&
                                 <Grid item xs={12}>
-                                    <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
-                                        {errMsg}
-                                    </Alert>
+                                    <TextField
+                                        required
+                                        fullWidth
+                                        id="email"
+                                        label="Email Address"
+                                        name="email"
+                                        autoComplete="email"
+                                        value={email}
+                                        onChange={e => {
+                                            setEmail(e.target.value)
+                                            setIsNotValidated(false)
+                                        }}
+                                    />
+                                    {
+                                        isNotValidated && !email &&
+                                        <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                            Email is required
+                                        </Alert>
+                                    }
+                                    {
+                                        isNotValidatedEmail && isNotValidated &&
+                                        <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                            Please enter a valid email address
+                                        </Alert>
+                                    }
                                 </Grid>
-                            }
-                        </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        required
+                                        fullWidth
+                                        name="password"
+                                        label="Password"
+                                        type="password"
+                                        id="password"
+                                        autoComplete="new-password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                    />
+                                    {
+                                        isNotValidated && !password &&
+                                        <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                            Password is required
+                                        </Alert>
+                                    }
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <FormControlLabel
+                                        control={<Checkbox value="allowExtraEmails" color="primary" />}
+                                        label="I want to receive inspiration, marketing promotions and updates via email."
+                                    />
+                                </Grid>
+                                {
+                                    status == 'loading' &&
+                                    <Grid item xs={12}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    </Grid>
+                                }
+                                {
+                                    errMsg &&
+                                    <Grid item xs={12}>
+                                        <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px' }}>
+                                            {errMsg}
+                                        </Alert>
+                                    </Grid>
+                                }
+                            </Grid>
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                sx={{ mt: 3, mb: 2 }}
+                                onClick={() => handleSubmit()}
+                            >
+                                Sign Up
+                            </Button>
+                            <Grid container justifyContent="flex-end">
+                                <Grid item>
+                                    <Link variant="body2" onClick={() => navigate('/signin')} style={{ cursor: 'pointer' }}>
+                                        Already have an account? Sign in
+                                    </Link>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Box>
+                    <Copyright sx={{ mt: 5 }} />
+                </Container>
+            }
+
+            {
+                active &&
+                <Container component="main" maxWidth="xs">
+                    <CssBaseline />
+                    <Box
+                        sx={{
+                            marginTop: 8,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                            <LockOutlinedIcon />
+                        </Avatar>
+                        <Typography component="h1" variant="h5">
+                            Check your email and enter token
+                        </Typography>
+                        <TextField
+                            required
+                            fullWidth
+                            autoFocus
+                            value={token}
+                            onChange={e => setToken(e.target.value)}
+                            label="Verify Token"
+                            style={{ margin: '20px 0 0 0' }}
+                        />
+
+                        {
+                            status == 'loading' &&
+                            <Box sx={{ display: 'flex', justifyContent: 'center', margin: '20px 0 5px 0' }}>
+                                <CircularProgress />
+                            </Box>
+                        }
+
+                        {
+                            status == 'failedactive' &&
+                            <Alert variant="outlined" severity="error" sx={{ margin: '10px 0', fontSize: '13px', width: '100%' }}>
+                                {errMsg}
+                            </Alert>
+                        }
+
                         <Button
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
-                            onClick={() => handleSubmit()}
+                            onClick={() => handleActivate()}
                         >
-                            Sign Up
+                            Activate your account
                         </Button>
                         <Grid container justifyContent="flex-end">
                             <Grid item>
-                                <Link variant="body2" onClick={() => navigate('/signin')} style={{ cursor: 'pointer' }}>
-                                    Already have an account? Sign in
+                                <Link variant="body2" onClick={() => handleReSend()} style={{ cursor: 'pointer' }}>
+                                    Not seen email? Click here to resend
                                 </Link>
                             </Grid>
                         </Grid>
                     </Box>
-                </Box>
-                <Copyright sx={{ mt: 5 }} />
-            </Container>
+                    <Copyright sx={{ mt: 5 }} />
+                </Container>
+            }
         </ThemeProvider>
     )
 }
