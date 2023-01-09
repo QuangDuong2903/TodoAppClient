@@ -83,7 +83,6 @@ const SignUpPage = () => {
         dispatch(activateAccount(token))
             .then(unwrapResult)
             .catch((rejectedValueOrSerializedError) => {
-                //console.log(rejectedValueOrSerializedError)
                 if (rejectedValueOrSerializedError == '400')
                     setErrMsg('Expired token')
                 else

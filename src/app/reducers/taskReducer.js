@@ -22,7 +22,7 @@ export const getTask = createAsyncThunk('taskManagement/getTaskData', async (acc
     }
 })
 
-export const createTask = createAsyncThunk('taskManagement/createTaskData', async ({ accessToken, data }) => {
+export const createTask = createAsyncThunk('taskManagement/createTaskData', async ({ accessToken, data }, { rejectWithValue }) => {
     try {
         const res = await axios.post(TASK_URL, data, {
             headers: {
@@ -32,10 +32,11 @@ export const createTask = createAsyncThunk('taskManagement/createTaskData', asyn
         return res.data
     } catch (error) {
         console.log(error)
+        return rejectWithValue(error.response.data.status)
     }
 })
 
-export const updateTask = createAsyncThunk('taskManagement/updateTaskData', async ({ accessToken, data, id }) => {
+export const updateTask = createAsyncThunk('taskManagement/updateTaskData', async ({ accessToken, data, id }, { rejectWithValue }) => {
     try {
         const res = await axios.put(`${TASK_URL}/${id}`, data, {
             headers: {
@@ -45,10 +46,11 @@ export const updateTask = createAsyncThunk('taskManagement/updateTaskData', asyn
         return res.data
     } catch (error) {
         console.log(error)
+        return rejectWithValue(error.response.data.status)
     }
 })
 
-export const deleteTask = createAsyncThunk('taskManagement/deleteTaskData', async ({ accessToken, id }) => {
+export const deleteTask = createAsyncThunk('taskManagement/deleteTaskData', async ({ accessToken, id }, { rejectWithValue }) => {
     try {
         await axios.delete(`${TASK_URL}/${id}`, {
             headers: {
@@ -58,6 +60,7 @@ export const deleteTask = createAsyncThunk('taskManagement/deleteTaskData', asyn
         return id
     } catch (error) {
         console.log(error)
+        return rejectWithValue(error.response.data.status)
     }
 })
 
